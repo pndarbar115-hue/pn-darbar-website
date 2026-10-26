@@ -1,0 +1,2 @@
+[functions.telegram-toss-webhook]
+verify_jwt = false
