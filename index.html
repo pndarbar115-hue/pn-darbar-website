@@ -34,6 +34,30 @@ header{border-bottom:1px solid var(--g2);background:#050606ed;box-shadow:0 3px 2
 <div class="panel quick"><div class="panelhead"><h3>🏅 Quick Stats</h3></div><div id="team-count-list"></div><div class="quickrow"><span>📨 Telegram Records</span><strong id="total-records">0</strong></div><div class="quickrow"><span>🔄 Refresh</span><strong>30 sec</strong></div></div>
 <div class="panel quick"><div class="eyebrow">✦ PN DARBAR</div><h3 style="color:var(--g);font: bold 23px Georgia">TOSS ANALYSIS</h3><p>Better Data • Better Prediction</p><div class="chips"><span class="chip">#TossSeMatchTak</span></div></div>
 </aside></div>
+
+<section class="panel feed" id="ai-toss-history" style="margin-top:14px;border-color:#d5a52c;box-shadow:0 0 22px #ffbd241c">
+  <div class="panelhead">
+    <div>
+      <h3>✦ AI GOLDEN TOSS HISTORY</h3>
+      <p>Telegram Message487 se mile asli Toss records</p>
+    </div>
+    <span class="chip">● LIVE DATA</span>
+  </div>
+  <div class="stats" style="margin-bottom:12px">
+    <div class="stat"><small>Total Toss Records</small><strong id="ai-history-total">0</strong></div>
+    <div class="stat"><small>Last Update</small><strong id="ai-history-time" style="font-size:15px">--:--</strong></div>
+  </div>
+  <div class="tablewrap" style="border-color:#9b7520">
+    <table>
+      <thead><tr><th>#</th><th>Match</th><th>Toss Winner</th><th>Telegram Message</th><th>Time</th></tr></thead>
+      <tbody id="ai-toss-history-body">
+        <tr><td colspan="5" class="empty">Telegram records load ho rahe hain...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="message">यह टेबल उपलब्ध Telegram API रिकॉर्ड दिखाता है।</p>
+</section>
+
 <section class="panel feed" id="recent"><div class="panelhead"><div><h3>☷ RECENT TOSS MESSAGES</h3><p>हाल में मिले टेलीग्राम संदेश</p></div><span class="chip" id="feed-total">0 संदेश</span></div><div id="feed"><div class="empty">अभी कोई संदेश नहीं मिला।</div></div></section>
 <div class="message">नोट: यह डैशबोर्ड आपके सर्वर से डेटा लोड करने की कोशिश करता है। API उपलब्ध न होने पर असली मैच/टॉस डेटा नहीं दिखेगा।</div>
 </main></div>
@@ -145,6 +169,27 @@ function renderToss(data){
     });
     body.append(tr);
   });
+
+  const historyBody=$("ai-toss-history-body");
+  historyBody.innerHTML="";
+  const history=records.slice().reverse();
+  $("ai-history-total").textContent=history.length;
+  $("ai-history-time").textContent=new Date().toLocaleTimeString("hi-IN",{hour:"2-digit",minute:"2-digit"});
+  history.slice(0,30).forEach((x,i)=>{
+    const tr=document.createElement("tr");
+    const time=x.time?new Date(x.time).toLocaleTimeString("hi-IN",{hour:"2-digit",minute:"2-digit"}):"समय उपलब्ध नहीं";
+    const values=[i+1,x.match,teamFlag(x.winner)+" "+x.winner,x.msg,time];
+    values.forEach((v,j)=>{
+      const td=document.createElement("td");
+      td.textContent=v;
+      if(j===2) td.style.color="#ffd34e";
+      if(j===3) {td.style.whiteSpace="normal";td.style.minWidth="180px";}
+      tr.append(td);
+    });
+    historyBody.append(tr);
+  });
+  if(!history.length) historyBody.innerHTML='<tr><td colspan="5" class="empty">अभी कोई पहचानने योग्य Toss रिकॉर्ड नहीं है।</td></tr>';
+
   $("feed-total").textContent=records.length+" Toss संदेश";
   const feed=$("feed");feed.innerHTML="";
   records.slice(-8).reverse().forEach(x=>{
