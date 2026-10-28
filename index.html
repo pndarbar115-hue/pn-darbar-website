@@ -54,14 +54,21 @@ function venueText(m){const i=matchInfo(m);return i.venueInfo?.ground||i.venue?.
 async function loadUpcoming(){const status=$("up-status");try{const r=await fetch(UPCOMING_API);if(!r.ok)throw Error("HTTP "+r.status);const matches=arrFrom(await r.json());$("fixtures").innerHTML="";if(!matches.length){$("fixtures").innerHTML='<div class="fixture"><div class="empty">अभी आगामी मैच नहीं मिले।</div></div>';status.textContent="0 मैच";return}matches.slice(0,8).forEach(m=>{const [a,b]=matchTeams(m);const card=document.createElement("article");card.className="fixture";card.innerHTML='<div class="date"></div><div class="teams"><span class="flag">🏏</span><span></span><span class="flag">🏏</span></div><div class="venue"></div><button class="goldbtn">Analysis ›</button>';card.querySelector(".date").textContent=dateText(m);card.querySelectorAll(".teams span")[1].textContent=a+" vs "+b;card.querySelector(".venue").textContent="📍 "+venueText(m);card.querySelector("button").onclick=()=>alert(a+" vs "+b+"\\nमैच विश्लेषण का डेटा जोड़ना बाकी है।");$("fixtures").append(card)});status.textContent="कुल "+matches.length+" मैच लोड हुए।"}catch(e){status.textContent="मैच API उपलब्ध नहीं: "+e.message;$("fixtures").innerHTML='<div class="fixture"><div class="empty">मैच लोड नहीं हुए। सर्वर/API जाँचें।</div></div>'}}
 
 function findToss(msg){
-  for(const line of String(msg||"").split(/\r?\n/)){
-    const m=line.match(/^\s*TOSS\s*(?:➠|➡️?|[:：-])\s*([A-Za-z][A-Za-z .&'-]{0,40}?)(?=\s*(?:[✅✔️🏏🪙]|$))/i);
-    if(m){
-      const n=m[1].trim().replace(/[.!,:;]+$/,"").trim();
-      if(n) return n;
+  const text = String(msg || "");
+  for (const line of text.split(/\r?\n/)) {
+    const patterns = [
+      /^\s*TOSS\s*(?:➠|➡️?|[:：-])\s*([A-Za-z][A-Za-z .&'-]{0,40}?)(?=\s*(?:[✅✔️🏏🪙]|$))/i,
+      /^\s*TOSS\s+(?:WINNER|WON)\s*[:：-]?\s*([A-Za-z][A-Za-z .&'-]{0,40})/i,
+      /^\s*([A-Za-z][A-Za-z .&'-]{1,35}?)\s+won the toss\b/i,
+      /^\s*Toss\s+Winner\s*[:：-]\s*([A-Za-z][A-Za-z .&'-]{1,35})/i
+    ];
+    for (const re of patterns) {
+      const m = line.match(re);
+      if (m && m[1]) {
+        const name = m[1].trim().replace(/[.!,:;]+$/, "").trim();
+        if (name && !/^(prediction|update|result|winner)$/i.test(name)) return name;
+      }
     }
-    const won=line.match(/([A-Za-z][A-Za-z .&'-]{1,35})\s+won the toss\b/i);
-    if(won) return won[1].trim();
   }
   return "";
 }
